@@ -1,48 +1,33 @@
 # Digital Marketing CTR Prediction Using Cross-Domain User Modeling
 
-This repository presents a structured three-stage workflow for predictive analysis on the **Digix Global AI Challenge – Digital Marketing Dataset**.  
-The dataset can be accessed publicly from Kaggle:  
-[Digix Global AI Challenge Dataset](https://www.kaggle.com/datasets/xiaojiu1414/digix-global-ai-challenge)
+This repository presents a structured workflow for ad click-through rate (CTR) prediction using the [Digix Global AI Challenge – Digital Marketing Dataset](https://www.kaggle.com/datasets/xiaojiu1414/digix-global-ai-challenge).
 
-The objective of this project is to enhance ad click-through rate (CTR) prediction by leveraging **cross-domain behavioral data** — specifically, by combining user behavior from the **news feeds domain** (source) with ad interaction data from the **ads domain** (target).  
+The project enhances CTR estimation by leveraging **cross-domain behavioral data** — integrating user behavior from the **news feeds domain** (source) with ad interaction data from the **ads domain** (target).
 
 ---
 
-## Project Overview
+## Project Structure
 
 | Notebook | Title | Description |
 |-----------|--------|-------------|
-| **1_DataCleaning.ipynb** | Data Cleaning and Preprocessing | Cleans and normalizes raw datasets from both ads and feeds domains to ensure data consistency and modeling readiness. |
-| **2_FeedsAggregation.ipynb** | Feed-Level User Aggregation | Aggregates news feed logs into per-user profiles, generating behavioral indicators such as activity, diversity, and time preference. |
-| **3_AdsMerge_Modeling.ipynb** | Ads–Feeds Integration and CTR Prediction | Merges ads and user profiles, performs exploratory data analysis (EDA), and develops predictive models for ad click-through rate. |
+| **1_DataCleaning.ipynb** | Data Cleaning and Preprocessing | Cleans and normalizes ads and feeds datasets for consistency and readiness. |
+| **2_FeedsAggregation.ipynb** | Feed-Level User Aggregation | Aggregates news feed logs into per-user profiles that represent behavior, diversity, and time patterns. |
+| **3_AdsMerge_Modeling.ipynb** | Ads–Feeds Integration and CTR Prediction | Merges user profiles with ads data, performs EDA, and builds predictive CTR models. |
 
 ---
 
 ## 1. Data Cleaning and Preprocessing
 
-**Goal:**  
-To transform four raw datasets — `train_data_ads.csv`, `test_data_ads.csv`, `train_data_feeds.csv`, and `test_data_feeds.csv` — into standardized, model-ready formats with clean structure, consistent column types, and derived auxiliary features.
+### Objective
+Prepare four raw datasets — `train_data_ads.csv`, `test_data_ads.csv`, `train_data_feeds.csv`, and `test_data_feeds.csv` — into structured, type-consistent, and model-ready formats.
 
-### Tasks Completed
-1. **Loaded and inspected raw datasets**  
-   - Verified dataset dimensions, column names, and sample records.  
-   - Identified target label column (`label`) in `train_data_ads`.
-
-2. **Implemented uniform cleaning rules**  
-   - **Missing values:** numeric → `-1`, categorical → `"unknown"`, multi-value strings → `""`.  
-   - **Data types:** IDs/enums cast to `category`; numerical fields kept as `int` or `float`.  
-   - **Time parsing:** extracted `t_hour`, `t_wday`, and `t_is_weekend` from timestamps (`pt_d` for ads, `e_et` for feeds).  
-   - **Multi-value features:** generated statistical summaries (`_len`, `_uniq`) for caret-separated strings.
-
-3. **Cleaned ads domain data (`train_data_ads`, `test_data_ads`)**  
-   - Derived 17 new columns including time and behavioral summaries.  
-   - Ensured column consistency between training and testing datasets.  
-   - Verified label distribution (click ratio ≈ 1.55%, reflecting real-world CTR imbalance).
-
-4. **Cleaned feeds domain data (`train_data_feeds`, `test_data_feeds`)**  
-   - Generated 11 new columns per record (3 temporal + 8 behavioral statistics).  
-   - Retained raw multi-value columns for potential higher-level feature engineering.  
-   - Ensured uniform schema across training and test partitions.
-
-5. **Output**  
-   The following cleaned datasets were exported as Parquet files for subsequent notebooks:
+### Main Steps
+1. **Data inspection:** Checked shape, columns, and structure; identified `label` in `train_data_ads` as the target.  
+2. **Unified cleaning rules:**  
+   - Missing values → numeric `-1`, categorical `"unknown"`, multi-value `""`.  
+   - IDs/enums cast to `category`; numerical fields kept as `int` or `float`.  
+   - Parsed timestamps to derive `t_hour`, `t_wday`, `t_is_weekend`.  
+   - Added `_len` and `_uniq` summaries for multi-value string fields.  
+3. **Ads domain cleanup:** Created 17 derived columns, ensured consistent schema between train/test, verified CTR ≈ 1.55%.  
+4. **Feeds domain cleanup:** Generated 11 derived columns (temporal + behavioral), standardized schema across train/test.  
+5. **Outputs:**  
