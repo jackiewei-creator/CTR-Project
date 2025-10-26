@@ -48,3 +48,42 @@ into clean, type-consistent, and analysis-ready tables.
 
 5. **Outputs**  
    Cleaned data were exported in Parquet format for the next phase
+
+## 2. Feeds Aggregation and User Profiling
+
+### Objective
+To transform feed-level behavior logs into **per-user profiles** that summarize user activity, interests, feedback, and temporal patterns.  
+This enables cross-domain integration between user behavior (feeds) and advertising responses (ads).
+
+### Main Steps
+1. **Dataset loading and validation**  
+   Loaded `feeds_train_clean.parquet` and `feeds_test_clean.parquet`.  
+   Verified structural consistency and key identifiers (`u_userId`, `t_hour`, `i_entities_len`).
+
+2. **User-level aggregation logic**  
+   Grouped by `u_userId` to compute:
+   - **Activity level:** feed count (`f_rows`), refresh frequency (`f_refresh_mean`, `f_refresh_sum`).  
+   - **Interest breadth:** unique news categories (`f_cat_uniq`), average entity count (`f_entities_len_mean`).  
+   - **Feedback behavior:** upvotes (`f_up_mean`, `f_up_sum`) and dislikes (`f_dislike_mean`, `f_dislike_sum`).  
+   - **Temporal preference:** average and peak browsing hours (`f_avg_hour`, `f_peak_hour`).  
+   - **Device traits:** median phone price and most frequent browser mode.
+
+3. **Feature enhancement (⭐ Innovation)**  
+   Introduced **cyclic time features** to capture daily periodicity:
+   - `f_hour_sin = sin(2π × f_avg_hour / 24)`  
+   - `f_hour_cos = cos(2π × f_avg_hour / 24)`  
+   These features help models understand continuous time-of-day patterns (e.g., night vs. morning users).
+
+4. **Light EDA for validation**  
+   Visualized user-level feature distributions:
+   - User activity and interest diversity showed heavy-tailed patterns.  
+   - Peak browsing hours concentrated between 19:00–22:00.  
+   - Device prices were stable (median ≈ 13–14).  
+   These results confirmed data quality and realistic user behavior.
+
+5. **Outputs**  
+   Exported aggregated datasets for model integration:
+   - `feeds_user_agg_train.parquet`  
+   - `feeds_user_agg_test.parquet`  
+
+
