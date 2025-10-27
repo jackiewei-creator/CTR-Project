@@ -21,7 +21,7 @@ Data Source: [CTR Prediction - 2022 DIGIX Global AI Challenge](https://www.kaggl
    
 3. **Modeling**
    - Baseline CTR models with Logistic Regression and Random Forest
-   - Upcoming: XGBoost, DeepFM.
+   - Optimization Model: LightGBM, XGBoost, DeepFM.
 
 4. **Evaluation & Future Work**
    - Model performance and expansion plans.  
