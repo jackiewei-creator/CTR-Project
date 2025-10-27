@@ -86,4 +86,35 @@ This enables cross-domain integration between user behavior (feeds) and advertis
    - `feeds_user_agg_train.parquet`  
    - `feeds_user_agg_test.parquet`  
 
+## 3. Merge and Exploratory Data Analysis (EDA)
+
+### Objective
+To integrate ad-level data (`train_data_ads`) with user-level features aggregated from feeds (`feeds_user_agg`), enabling a cross-domain analysis of how user behaviors relate to ad click-through rates (CTR).
+
+### Main Steps
+**Data merging**
+- Merged `train_data_ads` with `feeds_user_agg_train` and `test_data_ads` with `feeds_user_agg_test`.
+- Joined on the user identifier (`user_id` ↔ `u_userId`).
+- Verified column alignment and ensured no missing values were introduced.
+
+**Post-merge verification**
+- Confirmed consistent feature types and dataset dimensions:
+  - Training set: 7.68 M rows × 68 columns  
+  - Test set: 0.98 M rows × 67 columns
+- Inspected key numerical features (f_rows, f_refresh_mean, f_up_sum, etc.) — no anomalies detected.
+
+**Exploratory Data Analysis (EDA)**
+- **Correlation heatmap:** Identified feature clusters with strong internal correlation (e.g., `_len` vs. `_uniq`, `_sum` vs. `_mean`).
+- **CTR correlations:** Found positive correlations between CTR (`label`) and feed-based behavior metrics such as:
+  - `f_up_mean` (+0.08): users with more upvotes are more likely to click ads.
+  - `f_dislike_mean` (+0.06): even active dislikers show higher CTR, indicating general engagement.
+  - `f_hour_cos` (+0.03): users active at certain hours show slightly higher CTR.
+- **Boxplots:** Visualized behavioral and device-related differences between clicked (1) and non-clicked (0) samples, revealing distinct patterns in upvote and refresh behavior.
+- **Data export:** Final merged datasets were saved in `outputs_merged/` for modeling.
+
+### Outputs
+- `train_merged.parquet` — merged training dataset (ads + feeds features)
+- `test_merged.parquet`   — merged testing dataset ready for inference
+
+---
 
