@@ -477,3 +477,121 @@ Interpretation:
   - Use **real data** as the primary training source.
   - Use **CTGAN synthetic data** as a limited augmentation source.
   - Treat **CVAE synthetic data** mainly as a negative control and a demonstration that not all conditional generative models are equally suitable for high-dimensional, sparse CTR prediction tasks.
+# 9.0 — 9.3 CTGAN v2 Utility Evaluation
+
+This section evaluates **CTGAN v2**, a generator retrained using a
+50% real + 50% CTGAN v1 synthetic mixture (200k rows).  
+We assess whether this second-round training improves predictive utility
+or worsens calibration.
+
+We compare three settings using a held-out real validation set
+(`1.53M` rows):
+
+1. **200k real only** (baseline from Section 7.1)  
+2. **200k CTGAN v1 synthetic only**  
+3. **100k real + 100k CTGAN v1 synthetic**  
+4. **200k CTGAN v2 synthetic only**  
+5. **100k real + 100k CTGAN v2 synthetic**
+
+All models use the same LightGBM configuration.
+
+---
+
+# 9.3.1 CTGAN v1 Results (from Section 7)
+
+### (A) 200k Real Only (Baseline)
+- ROC-AUC: **0.7583**  
+- PR-AUC: **0.0995**  
+- F1: **0.0899**
+
+This represents the upper bound for any synthetic method at 200k scale.
+
+### (B) 200k CTGAN v1 Synthetic Only
+- ROC-AUC: **0.6523**  
+- PR-AUC: **0.0435**  
+- F1: **0.0000**
+
+CTGAN v1 synthetic data alone is not predictive due to label inflation
+(CTR ≈ 5%).
+
+### (C) 100k Real + 100k CTGAN v1 Synthetic
+- ROC-AUC: **0.7632**  
+- PR-AUC: **0.0948**  
+- F1: **0.1496**
+
+Mixed training provides the **best recall–precision balance**, confirming
+synthetic augmentation is beneficial when the generator is reasonably stable.
+
+---
+
+# 9.3.2 CTGAN v2 Results (trained on 50% real + 50% synthetic)
+
+CTGAN v2 produces highly distorted label distribution:
+
+- Synthetic CTR: **41.8%** (vs. real 1.55%)
+
+This indicates **severe mode collapse around the minority class**, likely
+caused by synthetic reinforcement during training.
+
+### (D) 200k CTGAN v2 Synthetic Only → Real Validation
+- ROC-AUC: **0.6944**  
+- PR-AUC: **0.0367**  
+- F1: **0.0626**
+
+Compared to CTGAN v1 synthetic (AUC 0.6523), CTGAN v2 improves slightly
+in ranking (AUC) but PR-AUC remains extremely poor due to miscalibrated
+label distribution.
+
+**Conclusion:**  
+CTGAN v2 synthetic data alone is still **not usable** for CTR prediction.
+
+---
+
+### (E) 100k Real + 100k CTGAN v2 Synthetic → Real Validation
+- ROC-AUC: **0.7705**  
+- PR-AUC: **0.0755**  
+- F1: **0.1368**
+
+Observations:
+- ROC-AUC is slightly above the CTGAN v1 mix (0.7705 vs 0.7632)
+- However PR-AUC **drops** (0.0755 vs 0.0948)
+- F1 is **lower** than CTGAN v1 mix (0.1368 vs 0.1496)
+
+Interpretation:
+- CTGAN v2 adds variance (helps AUC)
+- But severe overproduction of positive labels **hurts calibration**
+- Final F1 is **worse** than CTGAN v1 mix
+
+---
+
+# 9.3.3 Summary Table (CTGAN v1 vs v2)
+
+| Model                                   | ROC-AUC | PR-AUC | F1      | Notes |
+|-----------------------------------------|---------|--------|---------|-------|
+| 200k Real Only (baseline)               | 0.7583  | 0.0995 | 0.0899  | Best "clean" 200k performance |
+| 200k CTGAN v1 Synthetic Only            | 0.6523  | 0.0435 | 0.0000  | Useless alone |
+| 100k Real + 100k CTGAN v1               | 0.7632  | 0.0948 | 0.1496  | **Best F1** of all settings |
+| 200k CTGAN v2 Synthetic Only            | 0.6944  | 0.0367 | 0.0626  | Label collapse (CTR=41.8%) |
+| 100k Real + 100k CTGAN v2               | 0.7705  | 0.0755 | 0.1368  | High AUC, poor PR-AUC/F1 |
+
+---
+
+# Final Conclusion for CTGAN v2
+
+1. **Retraining a GAN on synthetic data significantly degrades label fidelity.**  
+   - CTR jumps from **5% → 41%**, indicating catastrophic positive-class collapse.
+
+2. **CTGAN v2 synthetic-only utility remains weak**, slightly better AUC than v1 but still unusable.
+
+3. **CTGAN v2 mixed training improves AUC but harms PR-AUC and F1**, meaning:
+   - Ranking improved (AUC gains)
+   - Classification thresholds collapse (precision falls sharply)
+
+4. **CTGAN v1 mixed training remains the best augmentation strategy**, producing:
+   - Balanced recall
+   - Best F1 across all settings
+   - Good PR-AUC matching real-only baseline
+
+5. **Therefore, using synthetic data to retrain GANs is not recommended**, as it amplifies synthetic artifacts and distorts the data distribution.
+
+This concludes the CTGAN v2 evaluation.
